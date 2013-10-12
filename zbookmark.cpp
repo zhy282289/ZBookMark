@@ -17,9 +17,28 @@ ZBookMark::ZBookMark(QWidget *parent, Qt::WFlags flags)
 
 	m_centralWidget = new ZCentralWidget;
 	setCentralWidget(m_centralWidget);
+
+
+
+
+	m_fileMenu = menuBar()->addMenu(tr("&File"));
+	m_exitAct = new QAction("Exit", this);
+	m_fileMenu->addAction(m_exitAct);
+
+	m_editMenu = menuBar()->addMenu(tr("&Edit"));
+	m_saveAct = new QAction("Save", this);
+	m_editMenu->addAction(m_saveAct);
+
+	connect(m_saveAct, SIGNAL(triggered()), this, SLOT(SlotSaveAct()));
+
 }
 
 ZBookMark::~ZBookMark()
 {
 
+}
+
+void ZBookMark::SlotSaveAct()
+{
+	DsGetIMsg()->SendMsg(ZBOOKMARKMAINWINDOW_MENU_SAVE);
 }

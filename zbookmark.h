@@ -12,10 +12,25 @@ public:
 	ZBookMark(QWidget *parent = 0, Qt::WFlags flags = 0);
 	~ZBookMark();
 
+
+
+private slots:
+	void SlotSaveAct();
+
 private:
 	ZDockWidget	*m_indexDockWidget;
 	ZTreeWidget	*m_indexTreeWidget;
 	ZCentralWidget *m_centralWidget;
+
+
+
+	QMenu		*m_fileMenu;
+	QAction		*m_exitAct;
+
+	QMenu		*m_editMenu;
+	QAction		*m_saveAct;
+
+
 };
 
 #endif // ZBOOKMARK_H

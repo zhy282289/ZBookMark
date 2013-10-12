@@ -74,6 +74,10 @@ public:
 	ZCentralWidget(QWidget *parent = 0);
 	~ZCentralWidget();
 
+
+	bool	OpenFile(const QString &filePath);
+	bool	SaveFile(const QString &filePath, const QByteArray &content);
+	void	ClearContent();
 protected:
 	void resizeEvent(QResizeEvent *event);
 	void customEvent(QEvent *event);
@@ -81,6 +85,8 @@ protected:
 
 private:
 	ZTextEdit	*m_textEdit;
+
+	ZItemData	m_curItemData;
 };
 
 

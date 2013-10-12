@@ -13,7 +13,11 @@ void RegisterAllMetaType()
 QString GetCurrentFileDir()
 {
 	QString path = GetAppPath() + "data" + PATH_SEPERATOR + QDateTime::currentDateTime().toString("yyyy-MM") + PATH_SEPERATOR;
-
+	QDir dir(path);
+	if (!dir.exists())
+	{
+		dir.mkpath(path);
+	}
 	return path;
 }
 
@@ -28,5 +32,5 @@ QString GetAppPath()
 	appPath = appPath.left(index);
 	appPath += "/Frameworks/"; 
 #endif
-	return appPath;
+	return QDir::toNativeSeparators(appPath);
 }

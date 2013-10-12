@@ -36,14 +36,10 @@ ZTreeWidget::ZTreeWidget( QWidget *parent /*= 0*/ )
 
 
 
-
-	DsGetIMsgObserver()->AddObserver(this, ZTREEWIDGET_PRESS, NULL);
-
 }
 
 ZTreeWidget::~ZTreeWidget()
 {
-	DsGetIMsgObserver()->RemoveObserver(this);
 }
 
 bool ZTreeWidget::Load( const QString &filePath )
@@ -188,11 +184,16 @@ ZCentralWidget::ZCentralWidget( QWidget *parent /*= 0*/ )
 	:QWidget(parent)
 {
 	m_textEdit = new ZTextEdit(this);
+
+
+
+	DsGetIMsgObserver()->AddObserver(this, ZTREEWIDGET_PRESS, NULL);
+	DsGetIMsgObserver()->AddObserver(this, ZBOOKMARKMAINWINDOW_MENU_SAVE, NULL);
 }
 
 ZCentralWidget::~ZCentralWidget()
 {
-
+	DsGetIMsgObserver()->RemoveObserver(this);
 }
 
 void ZCentralWidget::resizeEvent( QResizeEvent *event )
@@ -200,4 +201,62 @@ void ZCentralWidget::resizeEvent( QResizeEvent *event )
 	const int margins = 1;
 	QRect rect = this->rect();
 	m_textEdit->setGeometry(margins, margins, rect.width()-2*margins, rect.height()-2*margins);
+}
+
+void ZCentralWidget::customEvent( QEvent *event )
+{
+	switch (event->type())
+	{
+	case ZTREEWIDGET_PRESS:
+		{
+			CDsDataEvent *pEvent = static_cast<CDsDataEvent*>(event);
+			m_curItemData = *((ZItemData*)pEvent->data());
+			QString filePath = m_curItemData.path;
+			ClearContent();
+			OpenFile(filePath);
+		}
+		break;
+	case ZBOOKMARKMAINWINDOW_MENU_SAVE:
+		{
+			QByteArray content = m_textEdit->toHtml().toLocal8Bit();
+			SaveFile(m_curItemData.path, content);
+		}
+		break;
+	}
+}
+
+
+bool ZCentralWidget::OpenFile( const QString &filePath )
+{
+	QFile file(filePath);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		return false;
+	}
+
+	QByteArray content = file.readAll();
+
+	m_textEdit->setHtml(content);
+	file.close();
+
+	return true;
+}
+
+void ZCentralWidget::ClearContent()
+{
+	m_textEdit->clear();
+}
+
+bool ZCentralWidget::SaveFile( const QString &filePath, const QByteArray &content )
+{
+	QFile file(filePath);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		return false;
+	}
+
+	file.write(content);
+	file.close();
+
+	return true;
 }
