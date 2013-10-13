@@ -21,6 +21,13 @@ QString GetCurrentFileDir()
 	return path;
 }
 
+
+QString GetNewFilePath()
+{
+	return GetCurrentFileDir() + QDateTime::currentDateTime().toString("dd hh-mm-ss") + ".html";
+}
+
+
 QString GetAppPath()
 {
 	QString appPath;
@@ -33,4 +40,19 @@ QString GetAppPath()
 	appPath += "/Frameworks/"; 
 #endif
 	return QDir::toNativeSeparators(appPath);
+}
+
+QString GetTreeItemDataConfigPath()
+{
+	QString filePath = GetAppPath() + "ZBookMarkTree";
+	return filePath;
+}
+
+bool YesNoBox( QWidget *parent , const QString caption, const QString &text )
+{
+	QMessageBox box(parent);
+	box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+	box.setWindowTitle(caption);
+	box.setText(text);
+	return (box.exec() == QMessageBox::Yes) ? true : false;
 }

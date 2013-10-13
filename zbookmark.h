@@ -17,6 +17,10 @@ public:
 private slots:
 	void SlotSaveAct();
 
+protected:
+	void closeEvent(QCloseEvent *event);
+
+
 private:
 	ZDockWidget	*m_indexDockWidget;
 	ZTreeWidget	*m_indexTreeWidget;

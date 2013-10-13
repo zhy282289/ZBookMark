@@ -21,21 +21,21 @@ ZTreeWidget::ZTreeWidget( QWidget *parent /*= 0*/ )
 
 	this->setAnimated(true);
 	this->setDragDropMode(QAbstractItemView::InternalMove);
-
+	
 	ZItemData itemData;
 	itemData.title = "Root";
 	itemData.type = DirectoryType;
 	m_root = new QTreeWidgetItem(this, QStringList() <<itemData.title);
 	m_root->setData(0, ItemData, QVariant::fromValue(itemData));
+	m_root->setExpanded(true);
 
 	m_floderIcon = ":/ZBookMark/Resources/floder.png";
 	m_fileIcon = ":/ZBookMark/Resources/file.png";
 
-
 	connect(this, SIGNAL(itemPressed(QTreeWidgetItem*,int)), this, SLOT(SlotItemPressed(QTreeWidgetItem*,int)));
+	connect(this, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(SlotItemChanged(QTreeWidgetItem*,int)));
 
-
-
+	Load(GetTreeItemDataConfigPath());
 }
 
 ZTreeWidget::~ZTreeWidget()
@@ -47,15 +47,15 @@ bool ZTreeWidget::Load( const QString &filePath )
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-
 		return false;
 	}
 
 	QDataStream stream(&file);
 	stream.setVersion(QDataStream::Qt_4_8);
+
 	stream >> m_rootItemData;
 
-
+	LoadTreeWidget(m_rootItemData, m_root);
 	return true;
 }
 
@@ -63,16 +63,19 @@ bool ZTreeWidget::Load( const QString &filePath )
 
 bool ZTreeWidget::Save( const QString &filePath )
 {
-	QFile file(filePath);
+	QString path = GetTreeItemDataConfigPath();
+	QFile file(path);
 	if (!file.open(QIODevice::WriteOnly))
 	{
 		return false;
 	}
 
+
+	SaveTreeWidget(m_rootItemData, m_root);
+
 	QDataStream stream(&file);
 	stream.setVersion(QDataStream::Qt_4_8);
 	stream << m_rootItemData;
-
 
 	return true;
 }
@@ -113,34 +116,37 @@ void ZTreeWidget::SlotItemPressed( QTreeWidgetItem *item, int colume )
 	if (qApp->mouseButtons() & Qt::RightButton)
 	{
 		QMenu menu;
-		QAction *floderAct = menu.addAction("add floder");
-		floderAct->setEnabled(oldItemData.type == DirectoryType);
-		QAction *fileAct = menu.addAction("add file");
+		QAction *fileAct = menu.addAction("增加文件");
 		fileAct->setEnabled(item != m_root);
+		QAction *floderAct = menu.addAction("增加文件夹");
+		floderAct->setEnabled(oldItemData.type == DirectoryType);
+		QAction *deleteAct = menu.addAction("删除");
+		deleteAct->setEnabled(item != m_root);
+
 		QAction *act = menu.exec(cursor().pos());
 		if (act == floderAct)
 		{
-			//QTreeWidgetItem *newItem = new QTreeWidgetItem(item, QStringList() << "Untitle");
-			QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << "Untitle");
+			QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << "未命名");
 			newItem->setIcon(0, QIcon(m_floderIcon));
 			ZItemData itemData;
-			itemData.title = "Untitle";
+			itemData.title = "未命名";
 			itemData.type = DirectoryType;
-			itemData.path = "";
 			itemData.time = QDateTime::currentDateTime();
 			newItem->setData(0,ItemData, QVariant::fromValue(itemData));
 			item->insertChild(0, newItem);
-
+			item->setExpanded(true);
 		}
 		else if (act == fileAct)
 		{
-			QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << "Untitle");
+			QTreeWidgetItem *newItem = new QTreeWidgetItem(QStringList() << "未命名");
 			newItem->setIcon(0, QIcon(m_fileIcon));
 			ZItemData itemData;
-			itemData.title = "Untitle";
+			itemData.title = "未命名";
 			itemData.type = FileType;
-			itemData.path = GetCurrentFileDir() + "Untitle.html";
+			itemData.path = GetNewFilePath();
 			itemData.time = QDateTime::currentDateTime();
+
+
 			newItem->setData(0, ItemData, QVariant::fromValue(itemData));
 
 			if (oldItemData.type == DirectoryType)
@@ -151,10 +157,16 @@ void ZTreeWidget::SlotItemPressed( QTreeWidgetItem *item, int colume )
 			{
 				item->parent()->insertChild(item->parent()->indexOfChild(item), newItem);
 			}
-
-
+			item->setExpanded(true);
 		}
-		item->setExpanded(true);
+		else if (act == deleteAct)
+		{
+			QString text = oldItemData.type == DirectoryType ? "确定要删除此文件夹包括文件夹下面的文件吗" : "确定要删除此文件吗";
+			if (YesNoBox(this, "警告", text))
+			{
+				DeleteTreeItem(item);
+			}
+		}
 	}
 	else
 	{
@@ -162,6 +174,138 @@ void ZTreeWidget::SlotItemPressed( QTreeWidgetItem *item, int colume )
 		{
 
 			DsGetIMsg()->SendMsg(ZTREEWIDGET_PRESS, &oldItemData);
+		}
+	}
+}
+
+void ZTreeWidget::SaveTreeWidget( ZTreeItemData &treeItemData , QTreeWidgetItem *item)
+{
+	ZItemData itemData = item->data(0, ItemData).value<ZItemData>();
+
+	treeItemData.title = itemData.title;
+	treeItemData.type = itemData.type;
+	treeItemData.path = itemData.path;
+	treeItemData.time = itemData.time;
+	treeItemData.expand = false;
+
+	QVector<ZTreeItemData> treeItemDatas;
+	if (itemData.type == DirectoryType)
+	{
+		int size = item->childCount();
+		for (int i = 0; i < size; ++i)
+		{
+			ZTreeItemData childTreeItemData;
+			QTreeWidgetItem *childItem = item->child(i);
+			if (item->childCount())
+			{
+				SaveTreeWidget(childTreeItemData, childItem);
+				childTreeItemData.expand = childItem->isExpanded();
+			}
+			else
+			{
+				ZItemData childItemData = item->data(0, ItemData).value<ZItemData>();
+				childTreeItemData = ZTreeItemData(childItemData);
+			}
+
+			treeItemDatas.push_back(childTreeItemData);
+			//ZTreeItemData childTreeItemData;
+			//QTreeWidgetItem *childItem = item->child(i);
+			//if (item->childCount())
+			//{
+			//	SaveTreeWidget(childTreeItemData, childItem);
+			//	treeItemData.expand = item->isExpanded();
+			//}
+			//else
+			//{
+			//	ZItemData childItemData = item->data(0, ItemData).value<ZItemData>();
+			//	childTreeItemData = ZTreeItemData(childItemData);
+			//}
+			//treeItemDatas.push_back(childTreeItemData);
+
+		}
+	}
+	else if (itemData.type == FileType)
+	{
+
+	}
+
+	treeItemData.items = treeItemDatas;
+}
+
+void ZTreeWidget::LoadTreeWidget( ZTreeItemData &treeItemData, QTreeWidgetItem *item )
+{
+	if (treeItemData.type == DirectoryType)
+	{
+		int size = treeItemData.items.size();
+		for (int i = 0; i < size; ++i)
+		{
+			ZTreeItemData childTreeItemData = treeItemData.items.at(i);
+			QTreeWidgetItem *newItem = new QTreeWidgetItem(item, QStringList() << childTreeItemData.title);
+			newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
+			newItem->setIcon(0, QIcon(m_floderIcon));
+			ZItemData itemData(childTreeItemData);
+			newItem->setData(0,ItemData, QVariant::fromValue(itemData));
+			for (int j = 0; j < childTreeItemData.items.size(); ++j)
+			{
+				LoadTreeWidget(childTreeItemData.items[j], newItem);
+			}
+			item->addChild(newItem);
+			newItem->setExpanded(childTreeItemData.expand);
+			
+		}
+	}
+	else if (treeItemData.type == FileType)
+	{
+		QTreeWidgetItem *newItem = new QTreeWidgetItem(item, QStringList() << treeItemData.title);
+		newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
+		newItem->setIcon(0, QIcon(m_fileIcon));
+		ZItemData itemData(treeItemData);
+		newItem->setData(0,ItemData, QVariant::fromValue(itemData));
+	}
+
+}
+
+void ZTreeWidget::SlotItemChanged( QTreeWidgetItem *item, int colume )
+{
+	this->blockSignals(true);
+	QString newTitle = item->text(0);
+	ZItemData itemData = item->data(0, ItemData).value<ZItemData>();
+	if (!newTitle.isEmpty())
+	{
+		itemData.title = newTitle;
+		item->setData(0, ItemData, QVariant::fromValue(itemData));
+	}
+	else
+	{
+		item->setText(0, itemData.title);
+	}
+	this->blockSignals(false);
+}
+
+void ZTreeWidget::DeleteTreeItem( QTreeWidgetItem *item )
+{
+	_DeleteTreeItem(item);
+	item->parent()->takeChild(item->parent()->indexOfChild(item));
+}
+
+void ZTreeWidget::_DeleteTreeItem( QTreeWidgetItem *item )
+{
+	ZItemData itemData = item->data(0, ItemData).value<ZItemData>();
+	if (itemData.type == DirectoryType)
+	{
+		int size = item->childCount();
+		for (int i = 0; i < size; ++i)
+		{
+			QTreeWidgetItem *childItem = item->child(i);
+			_DeleteTreeItem(childItem);
+		}
+	}
+	else if (itemData.type == FileType)
+	{
+		QString filePath = itemData.path;
+		if (!QFile::remove(filePath))
+		{
+			//QMessageBox::warning(this, "提示", QString("删除文件失败:%1\n").arg(filePath));
 		}
 	}
 }
@@ -210,16 +354,21 @@ void ZCentralWidget::customEvent( QEvent *event )
 	case ZTREEWIDGET_PRESS:
 		{
 			CDsDataEvent *pEvent = static_cast<CDsDataEvent*>(event);
-			m_curItemData = *((ZItemData*)pEvent->data());
-			QString filePath = m_curItemData.path;
-			ClearContent();
-			OpenFile(filePath);
+			ZItemData tempItemData = *((ZItemData*)pEvent->data());
+			if (!(tempItemData == m_curItemData))
+			{
+				ClearContent();
+				m_curItemData = *((ZItemData*)pEvent->data());
+				QString filePath = m_curItemData.path;
+				OpenFile(filePath);
+			}
+
 		}
 		break;
 	case ZBOOKMARKMAINWINDOW_MENU_SAVE:
 		{
-			QByteArray content = m_textEdit->toHtml().toLocal8Bit();
-			SaveFile(m_curItemData.path, content);
+			m_textEdit->document()->setModified(false);
+			SaveFile();
 		}
 		break;
 	}
@@ -238,12 +387,20 @@ bool ZCentralWidget::OpenFile( const QString &filePath )
 
 	m_textEdit->setHtml(content);
 	file.close();
-
+	m_textEdit->document()->setModified(false);
 	return true;
 }
 
 void ZCentralWidget::ClearContent()
 {
+	if (m_textEdit->document()->isModified())
+	{
+		if (YesNoBox(this, "提示", "文件未保存, 是否保存"))
+		{
+			SaveFile();
+		}
+
+	}
 	m_textEdit->clear();
 }
 
@@ -260,3 +417,10 @@ bool ZCentralWidget::SaveFile( const QString &filePath, const QByteArray &conten
 
 	return true;
 }
+
+bool ZCentralWidget::SaveFile()
+{
+	QByteArray content = m_textEdit->toHtml().toLocal8Bit();
+	return SaveFile(m_curItemData.path, content);
+}
+

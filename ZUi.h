@@ -27,14 +27,20 @@ public:
 	~ZTreeWidget();
 	
 	bool Load(const QString &filePath);
-	bool Save(const QString &filePath);
+	bool Save(const QString &filePath = "");
 
 private:
 	void InitTreeWidget();
 	void _InitTreeWidget(QTreeWidgetItem *parent, const ZTreeItemData &parentItemData);
+	void LoadTreeWidget(ZTreeItemData &treeItemData, QTreeWidgetItem *item);
+	void SaveTreeWidget(ZTreeItemData &treeItemData, QTreeWidgetItem *item);
+
+	void DeleteTreeItem(QTreeWidgetItem *item);
+	void _DeleteTreeItem(QTreeWidgetItem *item);
 
 private slots:
 	void SlotItemPressed(QTreeWidgetItem *item, int colume);
+	void SlotItemChanged(QTreeWidgetItem *item, int colume);;
 private:
 
 	ZTreeItemData	m_rootItemData;
@@ -76,12 +82,13 @@ public:
 
 
 	bool	OpenFile(const QString &filePath);
-	bool	SaveFile(const QString &filePath, const QByteArray &content);
+	bool	SaveFile();
 	void	ClearContent();
+	
 protected:
 	void resizeEvent(QResizeEvent *event);
 	void customEvent(QEvent *event);
-
+	bool SaveFile(const QString &filePath, const QByteArray &content);
 
 private:
 	ZTextEdit	*m_textEdit;

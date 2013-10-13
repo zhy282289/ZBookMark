@@ -8,21 +8,34 @@ enum ZTreeItemType{ DirectoryType, FileType, };
 
 
 
-
-
-class ZTreeItemData
+class ZTreeItemData;
+class ZItemData
 {
 public:
 	QString			title;
 	int				type;
 	QString			path;
+	bool			expand;
 	QDateTime		time;
+
+	ZItemData();
+	ZItemData(const ZTreeItemData &itemData);
+	bool operator == (const ZItemData &other);
+	friend QDataStream& operator >> (QDataStream &in, ZItemData &data);
+	friend QDataStream& operator << (QDataStream &out, const ZItemData &data);
+};
+Q_DECLARE_METATYPE(ZItemData)
+
+
+class ZTreeItemData : public ZItemData
+{
+public:
 	QVector<ZTreeItemData>	items;
 
-	ZTreeItemData()
-	{
-
-	}
+	ZTreeItemData();
+	ZTreeItemData(const ZItemData &itemData);
+	ZTreeItemData(const ZTreeItemData &itemData);
+	//ZTreeItemData& operator = (const ZTreeItemData &other);
 
 	friend QDataStream& operator >> (QDataStream &in, ZTreeItemData &data);
 	friend QDataStream& operator << (QDataStream &out, const ZTreeItemData &data);
@@ -31,25 +44,6 @@ public:
 Q_DECLARE_METATYPE(ZTreeItemData)
 
 
-class ZItemData
-{
-public:
-	QString			title;
-	int				type;
-	QString			path;
-	QDateTime		time;
-	ZItemData(){}
-	ZItemData(const ZTreeItemData &itemData)
-	{
-		title = itemData.title;
-		type = itemData.type;
-		path = itemData.path;
-		time = itemData.time;
-	}
-	friend QDataStream& operator >> (QDataStream &in, ZItemData &data);
-	friend QDataStream& operator << (QDataStream &out, const ZItemData &data);
-};
-Q_DECLARE_METATYPE(ZItemData)
 
 
 
