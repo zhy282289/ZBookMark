@@ -63,7 +63,17 @@ ZItemData::ZItemData( const ZTreeItemData &itemData )
 	type = itemData.type;
 	path = itemData.path;
 	time = itemData.time;
+	expand = itemData.expand;
 	
+}
+
+ZItemData::ZItemData( const ZItemData &itemData )
+{
+	title = itemData.title;
+	type = itemData.type;
+	path = itemData.path;
+	time = itemData.time;
+	expand = itemData.expand;
 }
 
 ZItemData::ZItemData()

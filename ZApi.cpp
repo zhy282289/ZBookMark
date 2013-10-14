@@ -24,7 +24,7 @@ QString GetCurrentFileDir()
 
 QString GetNewFilePath()
 {
-	return GetCurrentFileDir() + QDateTime::currentDateTime().toString("dd hh-mm-ss") + ".html";
+	return GetCurrentFileDir() + QDateTime::currentDateTime().toString("yyyy MM dd hh-mm-ss") + ".html";
 }
 
 

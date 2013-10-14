@@ -20,6 +20,7 @@ public:
 
 	ZItemData();
 	ZItemData(const ZTreeItemData &itemData);
+	ZItemData(const ZItemData &itemData);
 	bool operator == (const ZItemData &other);
 	friend QDataStream& operator >> (QDataStream &in, ZItemData &data);
 	friend QDataStream& operator << (QDataStream &out, const ZItemData &data);

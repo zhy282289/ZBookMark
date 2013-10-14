@@ -38,6 +38,7 @@ private:
 	void DeleteTreeItem(QTreeWidgetItem *item);
 	void _DeleteTreeItem(QTreeWidgetItem *item);
 
+	void ExpandTree(QTreeWidgetItem *item);
 private slots:
 	void SlotItemPressed(QTreeWidgetItem *item, int colume);
 	void SlotItemChanged(QTreeWidgetItem *item, int colume);;
