@@ -33,6 +33,14 @@ ZBookMark::ZBookMark(QWidget *parent, Qt::WFlags flags)
 	m_editMenu->addAction(m_saveAct);
 	connect(m_saveAct, SIGNAL(triggered()), this, SLOT(SlotSaveAct()));
 
+
+
+
+	m_tooBar = new QToolBar;
+	m_colorDlg = new ZColorDialog;
+	m_tooBar->addWidget(m_colorDlg);
+
+	this->addToolBar(m_tooBar);
 }
 
 ZBookMark::~ZBookMark()

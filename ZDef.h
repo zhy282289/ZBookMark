@@ -22,6 +22,8 @@ public:
 	ZItemData(const ZTreeItemData &itemData);
 	ZItemData(const ZItemData &itemData);
 	bool operator == (const ZItemData &other);
+	void Init(const QString &title, int type, const QString &path, bool expand, QDateTime time);
+
 	friend QDataStream& operator >> (QDataStream &in, ZItemData &data);
 	friend QDataStream& operator << (QDataStream &out, const ZItemData &data);
 };
@@ -36,7 +38,7 @@ public:
 	ZTreeItemData();
 	ZTreeItemData(const ZItemData &itemData);
 	ZTreeItemData(const ZTreeItemData &itemData);
-	//ZTreeItemData& operator = (const ZTreeItemData &other);
+	
 
 	friend QDataStream& operator >> (QDataStream &in, ZTreeItemData &data);
 	friend QDataStream& operator << (QDataStream &out, const ZTreeItemData &data);
@@ -70,7 +72,9 @@ Q_DECLARE_METATYPE(ZTreeItemData)
 
 
 
-#define ZBOOKMARKMAINWINDOW		ZBOOKMARK + 1000
-#define ZBOOKMARKMAINWINDOW_MENU_SAVE ZBOOKMARKMAINWINDOW + 1
+#define ZBOOKMARKMAINWINDOW							ZBOOKMARK + 1000
+#define ZBOOKMARKMAINWINDOW_MENU_SAVE				ZBOOKMARKMAINWINDOW + 1
+#define ZBOOKMARKMAINWINDOW_MENU_COLORCHANGED		ZBOOKMARKMAINWINDOW + 2
+
 
 #endif

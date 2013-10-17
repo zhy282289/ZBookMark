@@ -55,6 +55,15 @@ ZTreeItemData::ZTreeItemData( const ZTreeItemData &itemData )
 	items = itemData.items;
 }
 
+void ZItemData::Init( const QString &title, int type, const QString &path, bool expand, QDateTime time )
+{
+	this->title = title;
+	this->type = type;
+	this->path = path;
+	this->expand = expand;
+	this->time = time;
+}
+
 
 ZItemData::ZItemData( const ZTreeItemData &itemData )
 {

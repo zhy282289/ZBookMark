@@ -39,6 +39,8 @@ private:
 	void _DeleteTreeItem(QTreeWidgetItem *item);
 
 	void ExpandTree(QTreeWidgetItem *item);
+	void LoadFromDirectory(const QString &path ,QTreeWidgetItem *item);
+
 private slots:
 	void SlotItemPressed(QTreeWidgetItem *item, int colume);
 	void SlotItemChanged(QTreeWidgetItem *item, int colume);;
@@ -48,7 +50,7 @@ private:
 	QTreeWidgetItem	*m_root;
 
 
-	QString			m_floderIcon;
+	QString			m_folderIcon;
 	QString			m_fileIcon;
 };
 
@@ -64,7 +66,7 @@ public:
 	ZTextEdit(QWidget *parent = 0);
 	~ZTextEdit();
 
-
+	void SetSelectColor(const QColor &color);
 private:
 
 
@@ -98,6 +100,25 @@ private:
 };
 
 
+
+
+
+class ZColorDialog : public QLabel
+{
+	Q_OBJECT
+public:
+	ZColorDialog(QWidget *parent = 0);
+	~ZColorDialog();
+
+	QColor CurrentColor();
+protected:
+	void mousePressEvent(QMouseEvent *event);
+	void paintEvent(QPaintEvent *event);
+private:
+	QColorDialog		*m_colorDlg;
+	QColor				m_curColor;
+	QRect 				m_btnRect;
+};
 
 
 

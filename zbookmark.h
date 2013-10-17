@@ -34,6 +34,8 @@ private:
 	QMenu		*m_editMenu;
 	QAction		*m_saveAct;
 
+	QToolBar	*m_tooBar;
+	ZColorDialog	*m_colorDlg;
 
 };
 

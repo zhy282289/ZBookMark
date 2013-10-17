@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="ZBookMark">
-      <file>Resources/floder.png</file>
+      <file>Resources/folder.png</file>
       <file>Resources/file.png</file>
       <file>Resources/cn.qm</file>
     </qresource>
